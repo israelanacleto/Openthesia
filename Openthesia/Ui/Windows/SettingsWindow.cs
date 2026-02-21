@@ -136,7 +136,7 @@ public class SettingsWindow : ImGuiWindow
             ImGui.Text(path);
 
             int nMidis = 0;
-            foreach (var midiFile in Directory.GetFiles(path))
+            foreach (var midiFile in Directory.GetFiles(path, "*", new EnumerationOptions { RecurseSubdirectories = true, IgnoreInaccessible = true }))
             {
                 if (Path.GetExtension(midiFile) == ".mid")
                 {
