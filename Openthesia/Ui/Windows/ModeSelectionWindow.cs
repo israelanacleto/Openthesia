@@ -109,7 +109,7 @@ public class ModeSelectionWindow : ImGuiWindow
         LeftRightData.S_IsRightNote.Clear();
         foreach (var note in MidiFileData.Notes)
         {
-            LeftRightData.S_IsRightNote.Add(true);
+            LeftRightData.S_IsRightNote.Add(note.Channel == 0);
         }
         MidiEditing.ReadData();
 
