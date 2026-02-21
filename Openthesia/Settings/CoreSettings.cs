@@ -32,6 +32,9 @@ public static class CoreSettings
     private static int _waveOutLatency = 75;
     public static ref int WaveOutLatency => ref _waveOutLatency;
 
+    private static KeyboardZoom _keyboardZoom = KeyboardZoom.Full;
+    public static ref KeyboardZoom KeyboardZoom => ref _keyboardZoom;
+
     private static SoundEngine _soundEngine = SoundEngine.None;
     public static ref SoundEngine SoundEngine => ref _soundEngine;
 
@@ -103,6 +106,11 @@ public static class CoreSettings
     public static void SetSoundFontLatency(int value)
     {
         _waveOutLatency = value;
+    }
+
+    public static void SetKeyboardZoom(KeyboardZoom zoom)
+    {
+        _keyboardZoom = zoom;
     }
 
     public static void SetSoundEngine(SoundEngine soundEngine)

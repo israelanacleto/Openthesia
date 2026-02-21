@@ -121,15 +121,21 @@ public class ScreenCanvas
                 continue;
             }
 
+            if (!PianoRenderer.IsNoteVisible(note.KeyNum))
+            {
+                index++;
+                continue;
+            }
+
             if (note.IsBlack)
             {
                 if (CoreSettings.NeonFx)
                 {
                     for (int i = 0; i < 3; i++)
                     {
-                        float thickness = i * 2;
-                        float alpha = 0.2f + (3 - i) * 0.2f;
-                        uint color = ImGui.GetColorU32(new Vector4(ThemeManager.RightHandCol.X, ThemeManager.RightHandCol.Y, ThemeManager.RightHandCol.Z, alpha) * 0.5f * 0.7f);
+                        float thickness = (i + 1) * 2;
+                        float alpha = 0.8f - i * 0.25f;
+                        uint color = ImGui.GetColorU32(new Vector4(ThemeManager.RightHandCol.X, ThemeManager.RightHandCol.Y, ThemeManager.RightHandCol.Z, alpha));
                         drawList.AddRect(
                             new(PianoRenderer.P.X + PianoRenderer.BlackNoteToKey.GetValueOrDefault((SevenBitNumber)note.KeyNum, 0) * PianoRenderer.Width + PianoRenderer.Width * 3 / 4 - 1, py1 - 1),
                             new(PianoRenderer.P.X + PianoRenderer.BlackNoteToKey.GetValueOrDefault((SevenBitNumber)note.KeyNum, 0) * PianoRenderer.Width + PianoRenderer.Width * 5 / 4 + 1, py2 + 1),
@@ -163,9 +169,9 @@ public class ScreenCanvas
                 {
                     for (int i = 0; i < 3; i++)
                     {
-                        float thickness = i * 2;
-                        float alpha = 0.2f + (3 - i) * 0.2f;
-                        uint color = ImGui.GetColorU32(new Vector4(ThemeManager.RightHandCol.X, ThemeManager.RightHandCol.Y, ThemeManager.RightHandCol.Z, alpha) * 0.5f);
+                        float thickness = (i + 1) * 2;
+                        float alpha = 0.8f - i * 0.25f;
+                        uint color = ImGui.GetColorU32(new Vector4(ThemeManager.RightHandCol.X, ThemeManager.RightHandCol.Y, ThemeManager.RightHandCol.Z, alpha));
                         drawList.AddRect(
                             new(PianoRenderer.P.X + PianoRenderer.WhiteNoteToKey.GetValueOrDefault((SevenBitNumber)note.KeyNum, 0) * PianoRenderer.Width - 1, py1 - 1),
                             new(PianoRenderer.P.X + PianoRenderer.WhiteNoteToKey.GetValueOrDefault((SevenBitNumber)note.KeyNum, 0) * PianoRenderer.Width + PianoRenderer.Width + 1, py2 + 1),
@@ -395,15 +401,22 @@ public class ScreenCanvas
                 }
             }
 
+            // skip notes outside the visible keyboard range
+            if (!PianoRenderer.IsNoteVisible((int)note.NoteNumber))
+            {
+                index++;
+                continue;
+            }
+
             if (note.NoteName.ToString().EndsWith("Sharp"))
             {
                 if (CoreSettings.NeonFx)
                 {
                     for (int i = 0; i < 3; i++)
                     {
-                        float thickness = i * 2;
-                        float alpha = 0.2f + (3 - i) * 0.2f;
-                        uint color = ImGui.GetColorU32(new Vector4(col.X, col.Y, col.Z, alpha) * 0.5f * 0.7f);
+                        float thickness = (i + 1) * 2;
+                        float alpha = 0.8f - i * 0.25f;
+                        uint color = ImGui.GetColorU32(new Vector4(col.X, col.Y, col.Z, alpha));
                         drawList.AddRect(
                             new(PianoRenderer.P.X + PianoRenderer.BlackNoteToKey.GetValueOrDefault(note.NoteNumber, 0) * PianoRenderer.Width + PianoRenderer.Width * 3 / 4 - 1, py1 - 1),
                             new(PianoRenderer.P.X + PianoRenderer.BlackNoteToKey.GetValueOrDefault(note.NoteNumber, 0) * PianoRenderer.Width + PianoRenderer.Width * 5 / 4 + 1, py2 + 1),
@@ -453,9 +466,9 @@ public class ScreenCanvas
                 {
                     for (int i = 0; i < 3; i++)
                     {
-                        float thickness = i * 2;
-                        float alpha = 0.2f + (3 - i) * 0.2f;
-                        uint color = ImGui.GetColorU32(new Vector4(col.X, col.Y, col.Z, alpha) * 0.5f);
+                        float thickness = (i + 1) * 2;
+                        float alpha = 0.8f - i * 0.25f;
+                        uint color = ImGui.GetColorU32(new Vector4(col.X, col.Y, col.Z, alpha));
                         drawList.AddRect(
                             new(PianoRenderer.P.X + PianoRenderer.WhiteNoteToKey.GetValueOrDefault(note.NoteNumber, 0) * PianoRenderer.Width - 1, py1 - 1),
                             new(PianoRenderer.P.X + PianoRenderer.WhiteNoteToKey.GetValueOrDefault(note.NoteNumber, 0) * PianoRenderer.Width + PianoRenderer.Width + 1, py2 + 1),
@@ -738,6 +751,7 @@ public class ScreenCanvas
                 MidiPlayer.Playback.Start();
                 MidiPlayer.StartTimer();
             }
+            Drawings.Tooltip("Play");
             ImGuiTheme.Style.Colors[(int)ImGuiCol.Text] = Vector4.One;
             var pauseColor = MidiPlayer.IsTimerRunning ? Vector4.One : new(0.70f, 0.22f, 0.22f, 1);
             ImGui.SameLine();
@@ -748,6 +762,7 @@ public class ScreenCanvas
                 MidiPlayer.Playback.Stop();
                 MidiPlayer.IsTimerRunning = false;
             }
+            Drawings.Tooltip("Pause");
             ImGuiTheme.Style.Colors[(int)ImGuiCol.Text] = Vector4.One;
             ImGui.SameLine();
             // STOP BUTTON
@@ -759,6 +774,7 @@ public class ScreenCanvas
                 MidiPlayer.IsTimerRunning = false;
                 MidiPlayer.Timer = 0;
             }
+            Drawings.Tooltip("Stop (Backspace)");
             ImGui.SameLine();
             // RECORD SCREEN BUTTON
             ImGui.PushStyleColor(ImGuiCol.Text, ScreenRecorder.Status == RecorderStatus.Recording ? new Vector4(0.08f, 0.80f, 0.27f, 1) : Vector4.One);
@@ -785,6 +801,7 @@ public class ScreenCanvas
                         break;
                 }
             }
+            Drawings.Tooltip("Record Screen (Ctrl+R)");
             ImGui.PopStyleColor();
 
             ImGui.PopFont();
@@ -807,6 +824,7 @@ public class ScreenCanvas
             {
                 SetUpDirection(!UpDirection);
             }
+            Drawings.Tooltip("Notes Direction");
             ImGui.PopFont();
         }
 
@@ -817,6 +835,7 @@ public class ScreenCanvas
         {
             SetTextNotes(!ShowTextNotes);
         }
+        Drawings.Tooltip("Show Note Names (T)");
         ImGui.PopFont();
         _isHoveringTextBtn = ImGui.IsItemHovered();
         if (_isHoveringTextBtn)
@@ -863,6 +882,7 @@ public class ScreenCanvas
         {
             SetLockTopBar(!LockTopBar);
         }
+        Drawings.Tooltip("Lock Toolbar");
         ImGui.PopFont();
 
         var fullScreenIcon = Program._window.WindowState == WindowState.BorderlessFullScreen ? FontAwesome6.Minimize : FontAwesome6.Expand;
@@ -875,6 +895,7 @@ public class ScreenCanvas
             var windowsState = Program._window.WindowState == WindowState.BorderlessFullScreen ? WindowState.Normal : WindowState.BorderlessFullScreen;
             Program._window.WindowState = windowsState;
         }
+        Drawings.Tooltip("Toggle Fullscreen");
         ImGui.PopFont();
 
         if (!IsLearningMode)
@@ -926,6 +947,7 @@ public class ScreenCanvas
         {
             LeftHandActive = !LeftHandActive;
         }
+        Drawings.Tooltip("Toggle Left Hand");
         ImGui.PopStyleColor();
         ImGui.SetCursorScreenPos(new(ImGuiUtils.FixedSize(new Vector2(190)).X, CanvasPos.Y + ImGuiUtils.FixedSize(new Vector2(110)).Y));
         ImGui.PushStyleColor(ImGuiCol.Button, RightHandActive ? ImGuiTheme.Button : ImGuiTheme.DarkButton);
@@ -933,6 +955,7 @@ public class ScreenCanvas
         {
             RightHandActive = !RightHandActive;
         }
+        Drawings.Tooltip("Toggle Right Hand");
         ImGui.PopStyleColor();
         ImGui.PopFont();
     }
@@ -956,6 +979,7 @@ public class ScreenCanvas
             var route = playMode ? Enums.Windows.Home : Enums.Windows.MidiBrowser;
             WindowsManager.SetWindow(route);
         }
+        Drawings.Tooltip("Back (Esc)");
         ImGui.EndDisabled();
         ImGui.PopFont();
 
@@ -968,12 +992,14 @@ public class ScreenCanvas
         {
             CoreSettings.SetNeonFx(!CoreSettings.NeonFx);
         }
+        Drawings.Tooltip("Notes Glow FX (G)");
         ImGui.PopFont();
 
         // LEFT HAND COLOR PICKER
         ImGui.SetCursorScreenPos(new(ImGuiUtils.FixedSize(new Vector2(70)).X, CanvasPos.Y + ImGuiUtils.FixedSize(new Vector2(110)).Y));
         ImGui.ColorEdit4("Left Hand Color", ref ThemeManager.LeftHandCol, ImGuiColorEditFlags.NoInputs | ImGuiColorEditFlags.NoLabel
             | ImGuiColorEditFlags.NoDragDrop | ImGuiColorEditFlags.NoOptions | ImGuiColorEditFlags.NoAlpha);
+        Drawings.Tooltip("Left Hand Color");
 
         _leftHandColorPicker = ImGui.IsPopupOpen("Left Hand Colorpicker");
 
@@ -981,6 +1007,7 @@ public class ScreenCanvas
         ImGui.SetCursorScreenPos(new(ImGuiUtils.FixedSize(new Vector2(115)).X, CanvasPos.Y + ImGuiUtils.FixedSize(new Vector2(110)).Y));
         ImGui.ColorEdit4("Right Hand Color", ref ThemeManager.RightHandCol, ImGuiColorEditFlags.NoInputs | ImGuiColorEditFlags.NoLabel
             | ImGuiColorEditFlags.NoDragDrop | ImGuiColorEditFlags.NoOptions | ImGuiColorEditFlags.NoAlpha);
+        Drawings.Tooltip("Right Hand Color");
 
         _rightHandColorPicker = ImGui.IsPopupOpen("Right Hand Colorpicker");
 
@@ -988,6 +1015,30 @@ public class ScreenCanvas
         {
             DrawHandToggleButtons();
         }
+
+        // KEYBOARD ZOOM DROPDOWN
+        var zoomLabel = CoreSettings.KeyboardZoom switch
+        {
+            Enums.KeyboardZoom.Keys61  => "61 Keys",
+            Enums.KeyboardZoom.Keys49  => "49 Keys",
+            Enums.KeyboardZoom.OneHand => "One Hand",
+            _                          => "88 Keys",
+        };
+        ImGui.SetNextItemWidth(ImGuiUtils.FixedSize(new Vector2(90)).X);
+        ImGui.SetCursorScreenPos(new(ImGuiUtils.FixedSize(new Vector2(25)).X, CanvasPos.Y + ImGuiUtils.FixedSize(new Vector2(155)).Y));
+        if (ImGui.BeginCombo("##KeyboardZoom", zoomLabel, ImGuiComboFlags.WidthFitPreview))
+        {
+            if (ImGui.Selectable("88 Keys", CoreSettings.KeyboardZoom == Enums.KeyboardZoom.Full))
+                CoreSettings.SetKeyboardZoom(Enums.KeyboardZoom.Full);
+            if (ImGui.Selectable("61 Keys", CoreSettings.KeyboardZoom == Enums.KeyboardZoom.Keys61))
+                CoreSettings.SetKeyboardZoom(Enums.KeyboardZoom.Keys61);
+            if (ImGui.Selectable("49 Keys", CoreSettings.KeyboardZoom == Enums.KeyboardZoom.Keys49))
+                CoreSettings.SetKeyboardZoom(Enums.KeyboardZoom.Keys49);
+            if (ImGui.Selectable("One Hand", CoreSettings.KeyboardZoom == Enums.KeyboardZoom.OneHand))
+                CoreSettings.SetKeyboardZoom(Enums.KeyboardZoom.OneHand);
+            ImGui.EndCombo();
+        }
+        Drawings.Tooltip("Keyboard Range");
 
         if (CoreSettings.SoundEngine == SoundEngine.SoundFonts)
         {
@@ -1114,6 +1165,7 @@ public class ScreenCanvas
             {
                 MidiRecording.StartRecording();
             }
+            Drawings.Tooltip("Record MIDI");
             ImGuiTheme.Style.Colors[(int)ImGuiCol.Text] = Vector4.One;
             ImGui.SameLine();
             // STOP BUTTON
@@ -1122,6 +1174,7 @@ public class ScreenCanvas
             {
                 MidiRecording.StopRecording();
             }
+            Drawings.Tooltip("Stop Recording");
             ImGuiTheme.Style.Colors[(int)ImGuiCol.Text] = Vector4.One;
             ImGui.SameLine();
             // SAVE RECORDING BUTTON
@@ -1129,6 +1182,7 @@ public class ScreenCanvas
             {
                 MidiRecording.SaveRecordingToFile();
             }
+            Drawings.Tooltip("Save Recording");
             ImGui.SameLine();
             // RECORD SCREEN BUTTON
             ImGui.PushStyleColor(ImGuiCol.Text, ScreenRecorder.Status == RecorderStatus.Recording ? new Vector4(0.08f, 0.80f, 0.27f, 1) : Vector4.One);
@@ -1146,6 +1200,7 @@ public class ScreenCanvas
                         break;
                 }
             }
+            Drawings.Tooltip("Record Screen (Ctrl+R)");
             ImGui.PopStyleColor();
             ImGui.PopFont();
             ImGui.EndChild();
@@ -1163,6 +1218,7 @@ public class ScreenCanvas
         {
             SetLockTopBar(!LockTopBar);
         }
+        Drawings.Tooltip("Lock Toolbar");
         ImGui.PopFont();
 
         if (!MidiRecording.IsRecording())
@@ -1209,6 +1265,7 @@ public class ScreenCanvas
                 var windowsState = Program._window.WindowState == WindowState.BorderlessFullScreen ? WindowState.Normal : WindowState.BorderlessFullScreen;
                 Program._window.WindowState = windowsState;
             }
+            Drawings.Tooltip("Toggle Fullscreen");
             ImGui.PopFont();
         }
     }

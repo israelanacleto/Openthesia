@@ -32,6 +32,8 @@ public class SettingsData
     public bool ShowTextNotes;
     public TextTypes TextType;
 
+    public KeyboardZoom KeyboardZoom;
+
     public SoundEngine SoundEngine;
     public int WaveOutLatency;
     public AudioDriverTypes AudioDriverType;

@@ -125,6 +125,7 @@ public static class ProgramData
                 CoreSettings.SetVideoRecAutoPlay(storedSettings.VideoRecAutoPlay);
                 CoreSettings.SetVideoRecFramerate(storedSettings.VideoRecFramerate == 0 ? 60 : storedSettings.VideoRecFramerate);
                 CoreSettings.SetOpenPluginAtStartup(storedSettings.OpenPluginAtStart);
+                CoreSettings.SetKeyboardZoom(storedSettings.KeyboardZoom);
             }
             catch (Exception ex)
             {
@@ -194,6 +195,7 @@ public static class ProgramData
             VideoRecAutoPlay = CoreSettings.VideoRecAutoPlay,
             VideoRecFramerate = CoreSettings.VideoRecFramerate,
             OpenPluginAtStart = CoreSettings.OpenPluginAtStart,
+            KeyboardZoom = CoreSettings.KeyboardZoom,
         };
 
         string json = JsonConvert.SerializeObject(data, settings);
