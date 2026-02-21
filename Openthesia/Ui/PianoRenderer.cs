@@ -30,21 +30,10 @@ public class PianoRenderer
                   .Where(n => IsWhiteKey(n))
                   .ToArray();
 
-    // Cached MIDI note range of the currently loaded file.
-    // Updated once when a file is loaded (see SetNoteRange).
-    private static int _midiMin = 21;
-    private static int _midiMax = 108;
-
     // ---------- public helpers ----------
 
-    /// <summary>Call this once after loading a MIDI file so the auto-range works.</summary>
-    public static void SetNoteRange(IEnumerable<Note> notes)
-    {
-        var list = notes?.ToList();
-        if (list == null || list.Count == 0) { _midiMin = 21; _midiMax = 108; return; }
-        _midiMin = list.Min(n => (int)n.NoteNumber);
-        _midiMax = list.Max(n => (int)n.NoteNumber);
-    }
+    /// <summary>No longer used — kept for API compatibility.</summary>
+    public static void SetNoteRange(IEnumerable<Note> notes) { }
 
     /// <summary>Returns true if the MIDI note is within the currently visible keyboard range.</summary>
     public static bool IsNoteVisible(int midiNote) =>
@@ -72,37 +61,21 @@ public class PianoRenderer
     }
 
     /// <summary>
-    /// Returns the starting white-key MIDI note for the current zoom preset,
-    /// auto-centred on the notes of the loaded file.
-    /// For the Full preset the range is always A0–C8.
+    /// Returns the fixed starting white-key MIDI note and white-key count for each preset,
+    /// matching the standard layout of real keyboards.
+    ///   Full    (88 keys): A0  – C8  — 52 white keys  (standard piano)
+    ///   61 Keys (61 keys): C2  – C7  — 36 white keys
+    ///   49 Keys (49 keys): C3  – C7  — 29 white keys
+    ///   One Hand(25 keys): C4  – C6  — 15 white keys
     /// </summary>
-    private static (int startWhite, int numWhite) GetZoomData()
-    {
-        int numWhite = CoreSettings.KeyboardZoom switch
+    private static (int startWhite, int numWhite) GetZoomData() =>
+        CoreSettings.KeyboardZoom switch
         {
-            KeyboardZoom.Keys61  => 36,
-            KeyboardZoom.Keys49  => 29,
-            KeyboardZoom.OneHand => 15,
-            _                    => 52,  // Full
+            KeyboardZoom.Keys61  => (36, 36),  // C2
+            KeyboardZoom.Keys49  => (48, 29),  // C3
+            KeyboardZoom.OneHand => (60, 15),  // C4 (middle C)
+            _                    => (21, 52),  // A0 — Full 88-key
         };
-
-        if (CoreSettings.KeyboardZoom == KeyboardZoom.Full)
-            return (AllWhiteKeys[0], 52); // always A0
-
-        // Find the white-key index of the lowest note (or the first white key >= minNote).
-        int minIdx = Array.FindIndex(AllWhiteKeys, k => k >= _midiMin);
-        if (minIdx < 0) minIdx = 0;
-
-        // Find the white-key index of the highest note (or the last white key <= maxNote).
-        int maxIdx = Array.FindLastIndex(AllWhiteKeys, k => k <= _midiMax);
-        if (maxIdx < 0) maxIdx = AllWhiteKeys.Length - 1;
-
-        // Centre the preset window over the note range.
-        int centerIdx = (minIdx + maxIdx) / 2;
-        int startIdx  = Math.Clamp(centerIdx - numWhite / 2, 0, AllWhiteKeys.Length - numWhite);
-
-        return (AllWhiteKeys[startIdx], numWhite);
-    }
 
     // ---------- main render ----------
 
