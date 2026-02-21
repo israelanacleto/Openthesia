@@ -113,6 +113,8 @@ public class ModeSelectionWindow : ImGuiWindow
         }
         MidiEditing.ReadData();
 
+        PianoRenderer.SetNoteRange(MidiFileData.Notes);
+
         // Map each note (possibly multiple at the same time/number) to its indices in the MIDI file
         LeftRightData.S_NoteIndexMap = new Dictionary<string, List<int>>();
 
